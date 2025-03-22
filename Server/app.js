@@ -2,6 +2,8 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { configDotenv } from 'dotenv';
+import './utils/connection.js'
+import userRoute from './routes/user.routes.js'
 
 // intialize the app
 const app = express();
@@ -22,6 +24,9 @@ app.use(cors())
 app.get('/', (req,res) => {
     res.send('Hello Server Is Runing');
 })
+
+// defining the routes for the application
+app.use('/api/user', userRoute);  // user Route
 
 // start the server
 app.listen(PORT, () => console.log(`Server is running at PORT: ${PORT}`))
