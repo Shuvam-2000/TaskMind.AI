@@ -4,6 +4,7 @@ import cors from 'cors';
 import { configDotenv } from 'dotenv';
 import './utils/connection.js'
 import userRoute from './routes/user.routes.js'
+import taskRoute from './routes/task.routes.js'
 
 // intialize the app
 const app = express();
@@ -16,9 +17,9 @@ const PORT = process.env.PORT || 8001;
 
 // middlewares
 app.use(express.json());   // Parse JSON request
-app.use(express.urlencoded({ extended: true }))  // Parse URL-encoded request bodies
+app.use(express.urlencoded({ extended: true }));  // Parse URL-encoded request bodies
 app.use(cookieParser());  // Enable Cookie parsing
-app.use(cors())
+app.use(cors());
 
 // test route
 app.get('/', (req,res) => {
@@ -27,6 +28,7 @@ app.get('/', (req,res) => {
 
 // defining the routes for the application
 app.use('/api/user', userRoute);  // user Route
+app.use('/api/task', taskRoute);  // task Route
 
 // start the server
 app.listen(PORT, () => console.log(`Server is running at PORT: ${PORT}`))
