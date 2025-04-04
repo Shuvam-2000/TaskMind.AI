@@ -1,38 +1,50 @@
-import Task from "../models/task.model";
+import Task from "../models/task.model.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { configDotenv } from "dotenv";
+import mongoose from "mongoose";
 
 // Load Environment Variables
 configDotenv();
 
-// Initalize Gemini API
+// Initialize Gemini API
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// AI task Handler
-export const aiTaskHandler = async (req,res) => {
+// pending task info fetching thorugh AI
+export const getPendingTaskFromAI = async (req, res) => {
     try {
+        const userid = req.user?.id;
 
-        // extracting the userid from the middleware
-        const userid = req.user?.id
-        if(!userid) return res.status(400).json({
-            message: "UserId Not Found",
-            success: false
-        })
-        const { prompt } = req.body.prompt?.trim().toLowerCase()
-        let responseMesage = ""
-
-        if(prompt.includes("pending tasks") || prompt.includes("how many task created")){
-            const taskPending = await Task.find({ userid, status: "todo" });
-            if(taskPending.length === 0) {
-                responseMesage = "You Have Not Created Any Task"
-            }else{
-                responseMesage = `You have ${taskPending.length} no of task pending. They are`
-            }
+        if (!userid) {
+            return res.status(400).json({
+                message: "UserId Not Found",
+                success: false
+            });
         }
+
+        // convert userid to ObjectId
+        const userIdObject = new mongoose.Types.ObjectId(userid);
+
+        // fetch pending taks from the database
+        const pendingTasks = await Task.find({ user: userIdObject, status: "todo" });
+
+        // response to the user of the pending task
+        const taskListText = pendingTasks.length === 0
+            ? "You have no pending tasks."
+            : pendingTasks.map((task, index) => `${index + 1}. ${task.title}`).join("\n");
+
+        const geminiPrompt = `You are an AI task assistant. Based on the following list of pending tasks for a user, generate a helpful and motivating summary. If there are no tasks, let the user know politely.\n\nPending Tasks:\n${taskListText}`;
+
+        // Use Gemini AI Model
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(geminiPrompt);
+        const response = result.response.text();
+
+        res.status(200).json({ response });
+
     } catch (error) {
         res.status(500).json({
             message: "Internal Server Error",
             success: false
-        })
+        });
     }
-}
+};
