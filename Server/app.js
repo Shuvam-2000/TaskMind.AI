@@ -5,6 +5,7 @@ import { configDotenv } from 'dotenv';
 import './utils/connection.js'
 import userRoute from './routes/user.routes.js'
 import taskRoute from './routes/task.routes.js'
+import aiRoute from './routes/ai.routes.js'
 
 // intialize the app
 const app = express();
@@ -29,6 +30,7 @@ app.get('/', (req,res) => {
 // defining the routes for the application
 app.use('/api/user', userRoute);  // user Route
 app.use('/api/task', taskRoute);  // task Route
+app.use('/api/ai', aiRoute)  // ai Route
 
 // start the server
 app.listen(PORT, () => console.log(`Server is running at PORT: ${PORT}`))
